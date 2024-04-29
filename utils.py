@@ -4,7 +4,10 @@ import re
 
 from itertools import chain
 from nltk.corpus import wordnet as wn
-from sklearn.model_selection import KFold
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import KFold, train_test_split
 
 
 # Correspondances between the synsets from WordNet and the sensid in TWA.
@@ -175,3 +178,22 @@ def cross_validation(model, data, num_folds=10, has_param=False, params={}, is_r
     
     mean_acc = round(sum(cv_scores) / len(cv_scores), 4)
     return mean_acc
+
+
+def naive_bayes_classifier(instances):
+    sentences = []
+    labels = []
+    for ins in instances:
+        context = ins.context_elt.text + ins.context_elt.tail
+        sentences.append(context)
+        labels.append(ins.sense)
+
+    vectorizer = CountVectorizer()
+
+    X = vectorizer.fit_transform(sentences)
+    X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42)
+    nb_classifier = MultinomialNB()
+    nb_classifier.fit(X_train, y_train)
+    y_pred = nb_classifier.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    return round(accuracy, 4)

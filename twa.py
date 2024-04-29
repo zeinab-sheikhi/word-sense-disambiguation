@@ -16,13 +16,13 @@ class WSDInstance:
         if self.sense == "ank%container":  # There is a typo in the corpus.
             self.sense = "tank%container"
         
-        context_elt = xml_element.find('.//context')
+        self.context_elt = xml_element.find('.//context')
         # The target token is inside a "head" node.
-        head_elt = context_elt.find('.//head')
+        head_elt = self.context_elt.find('.//head')
         self.lemma = head_elt.text  # string
         
         # `context_elt.text` contains everything in the context before the "head" node.
-        self.left_context = normalize_and_split(context_elt.text)  # list[string]
+        self.left_context = normalize_and_split(self.context_elt.text)  # list[string]
         
         # `head_elt.tail` contains everything in the context after the "head" node.
         self.right_context = normalize_and_split(head_elt.tail)  # list[string]
