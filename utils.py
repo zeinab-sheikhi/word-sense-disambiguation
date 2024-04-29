@@ -4,6 +4,7 @@ import re
 
 from itertools import chain
 from nltk.corpus import wordnet as wn
+from sklearn.model_selection import KFold
 
 
 # Correspondances between the synsets from WordNet and the sensid in TWA.
@@ -151,3 +152,26 @@ def calculate_idf(instances):
     filtered_words = [key for key, value in idf_scores.items() if value >= threshold]
 
     return filtered_words
+
+
+def cross_validation(model, data, num_folds=10, has_param=False, params={}, is_randome=False):    
+
+    kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
+    cv_scores = []
+    
+    for train_index, test_index in kf.split(data):
+        train = [data[i] for i in train_index]
+        test = [data[i] for i in test_index]
+
+        if is_randome:
+            model.train()
+        elif has_param:
+            model.train(train, **params)
+        else:
+            model.train(train)
+        
+        accuracy = model.evaluate(test)
+        cv_scores.append(accuracy)
+    
+    mean_acc = round(sum(cv_scores) / len(cv_scores), 4)
+    return mean_acc
