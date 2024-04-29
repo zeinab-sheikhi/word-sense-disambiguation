@@ -1,6 +1,6 @@
 import random
 
-from utils import prettyprint_sense_distribution, WN_CORRESPONDANCES
+from utils import prettyprint_sense_distribution, calculate_idf, WN_CORRESPONDANCES
 
 
 class WSDClassifier(object):
@@ -17,7 +17,7 @@ class WSDClassifier(object):
         """
                 
         true_predictions = sum(1 for ins in instances if ins.sense == self.predict_sense(ins))
-        return true_predictions / len(instances)
+        return round(true_predictions / len(instances), 3)
         
 
 class RandomSense(WSDClassifier):
@@ -93,52 +93,28 @@ class SimplifiedLesk(WSDClassifier):
         """
         # For the signature of a sense, use (i) the definition of each of the corresponding WordNet synsets,
         # (ii) all of the corresponding examples in WordNet and (iii) the corresponding training instances.
+        
+        filtered_words = calculate_idf(instances)
+        
         for ins in instances:
+            
             sense = ins.sense
+            context = ins.context
             right_context = ins.right_context[:window_size]
             left_context = ins.left_context[:window_size]
             
-            if window_size == -1:
-                context = ins.context
-            else:
+            if window_size != -1:
                 context = left_context + right_context
+            
             if use_idf:
-                pass
-            else:
-                pass
+                context = list(set(filtered_words).intersection(set(context)))
+
             if sense not in self.signatures.keys():
                 self.signatures[sense] = get_signature(ins.lemma) + context
             else:
                 self.signatures[sense] = context
 
         self.signatures = {key: set(value) for key, value in self.signatures.items()}
-
-    # def train(self, instances, window_size=-1):
-    #     """
-    #     instances: list[WSDInstance]
-    #     window_size: int
-    #     """
-
-    #     for ins in instances:
-    #         sense = ins.sense
-    #         right_context = ins.right_context[:window_size]
-    #         left_context = ins.left_context[:window_size]
-    #         context = right_context + left_context
-
-    #         if sense not in self.signatures.keys():
-    #             self.signatures[sense] = get_signature(ins.lemma) + context
-    #         else:
-    #             self.signatures[sense] = context
-            
-    #     self.signatures = {key: set(value) for key, value in self.signatures.items()}
-
-    # def train(self, instances, window_size=-1, idf=[]):
-    #     """
-    #     instances: list[WSDInstance]
-    #     window_size: int
-    #     idf: int
-    #     """
-    #     pass
 
     def predict_sense(self, instance):
         """
@@ -176,7 +152,7 @@ if __name__ == '__main__':
     
     from twa import WSDCollection
     from optparse import OptionParser
-    from utils import data_split, sense_distribution, random_data_split, get_signature
+    from utils import sense_distribution, random_data_split, get_signature
 
     usage = "Comparison of various WSD algorithms.\n%prog TWA_FILE"
     parser = OptionParser(usage=usage)
@@ -201,28 +177,38 @@ if __name__ == '__main__':
     # Evaluation of the random baseline on the whole corpus.
     randome_baseline = RandomSense()
     randome_baseline_acc = randome_baseline.evaluate(instances)
-    # print(randome_baseline_acc)
+    print(f"Random Baseline {randome_baseline_acc}")
 
     # Evaluation of the most frequent sense baseline using different splits of the corpus (with `utils.data_split` or `utils.random_data_split`).
     most_frequent_baseline = MostFrequentSense()
     most_frequent_baseline.train(train)
     most_frequent_baseline_acc = most_frequent_baseline.evaluate(test)
-    # print(most_frequent_baseline_acc)
+    print(f"Frequent Sense Baseline {most_frequent_baseline_acc}")
 
     # Evaluation of Simplified Lesk (with no fixed window and no IDF values) using different splits of the corpus.
     simple_lesk = SimplifiedLesk()
-    # simple_lesk.train(train)
-    # simple_lesk_acc = simple_lesk.evaluate(test)
-    # print(simple_lesk_acc)
+    simple_lesk.train(train)
+    simple_lesk_acc = simple_lesk.evaluate(test)
+    print(f"Simplified Lesk {simple_lesk_acc}")
     
     # Evaluation of Simplified Lesk (with a window of size 10 and no IDF values) using different splits of the corpus.
     simple_lesk.train(instances=train, window_size=10)
-    simple_lesk_acc = simple_lesk.evaluate(test)
-    print(simple_lesk_acc)
-    
+    simple_lesk_window_acc = simple_lesk.evaluate(test)
+    print(f"Simplified Lesk with window {simple_lesk_window_acc}")
+
     # Evaluation of Simplified Lesk (with IDF values and no fixed window) using different splits of the corpus.
-    pass  # TODO
+    simple_lesk.train(instances=train[:10], use_idf=True)
+    simple_lesk_idf_acc = simple_lesk.evaluate(test)
+    print(f"Simplified Lesk with IDF {simple_lesk_idf_acc}")
     
+
+
+
+
+
+
+
+
     # Cross-validation
     pass  # TODO
     

@@ -138,11 +138,16 @@ def get_signature(lemma):
     return list(chain.from_iterable(signature_list))
 
 
-def calculate_idf(corpus):
+def calculate_idf(instances):
     idf_scores = {}
-    total_documents = len(corpus)
-    for document in corpus:
-        unique_words = set(document)
+    total_instances = len(instances)
+    
+    for ins in instances:
+        unique_words = set(ins.context)
         for word in unique_words:
-            idf_scores[word] = math.log(total_documents / sum(1 for doc in corpus if word in doc))
-    return idf_scores
+            idf_scores[word] = round(math.log(total_instances / sum(1 for ins in instances if word in ins.context)), 4)
+    
+    threshold = (min(idf_scores.values()) + max(idf_scores.values())) / 2
+    filtered_words = [key for key, value in idf_scores.items() if value >= threshold]
+
+    return filtered_words
