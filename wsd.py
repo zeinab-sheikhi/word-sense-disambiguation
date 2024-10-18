@@ -44,7 +44,7 @@ class RandomSense(WSDClassifier):
         instance: WSDInstance
         """
 
-        senses = list(WN_CORRESPONDANCES[instance.lemma].keys())  # list[string]
+        senses = list(WN_CORRESPONDANCES[instance.lemma].keys())
         random.shuffle(senses)
         return senses[0]
     
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     
     from twa import WSDCollection
     from optparse import OptionParser
-    from utils import sense_distribution, random_data_split, get_signature, cross_validation
+    from utils import sense_distribution, random_data_split, get_signature, cross_validation, naive_bayes_classifier
 
     usage = "Comparison of various WSD algorithms.\n%prog TWA_FILE"
     parser = OptionParser(usage=usage)
@@ -180,34 +180,35 @@ if __name__ == '__main__':
     # test, train = random_data_split(instances, n=10, p=3)
 
     # Evaluation of the random baseline on the whole corpus.
-    # randome_baseline = RandomSense()
-    # randome_baseline_acc = randome_baseline.evaluate(instances)
-    # print(f"Random Baseline {randome_baseline_acc}")
+    randome_baseline = RandomSense()
+    randome_baseline_acc = randome_baseline.evaluate(instances)
+    print(f"\nRandom Baseline {randome_baseline_acc}")
 
     # # Evaluation of the most frequent sense baseline using different splits of the corpus (with `utils.data_split` or `utils.random_data_split`).
-    # most_frequent_baseline = MostFrequentSense()
-    # most_frequent_baseline.train(train)
-    # most_frequent_baseline_acc = most_frequent_baseline.evaluate(test)
-    # print(f"Frequent Sense Baseline {most_frequent_baseline_acc}")
+    most_frequent_baseline = MostFrequentSense()
+    most_frequent_baseline.train(train)
+    most_frequent_baseline_acc = most_frequent_baseline.evaluate(test)
+    print(f"Frequent Sense Baseline {most_frequent_baseline_acc}")
 
     # # Evaluation of Simplified Lesk (with no fixed window and no IDF values) using different splits of the corpus.
-    # simple_lesk = SimplifiedLesk()
-    # simple_lesk.train(train)
-    # simple_lesk_acc = simple_lesk.evaluate(test)
-    # print(f"Simplified Lesk {simple_lesk_acc}")
+    simple_lesk = SimplifiedLesk()
+    simple_lesk.train(train)
+    simple_lesk_acc = simple_lesk.evaluate(test)
+    print(f"Simplified Lesk {simple_lesk_acc}")
     
     # # Evaluation of Simplified Lesk (with a window of size 10 and no IDF values) using different splits of the corpus.
-    # simple_lesk.train(instances=train, window_size=10)
-    # simple_lesk_window_acc = simple_lesk.evaluate(test)
-    # print(f"Simplified Lesk with window {simple_lesk_window_acc}")
+    simple_lesk.train(instances=train, window_size=10)
+    simple_lesk_window_acc = simple_lesk.evaluate(test)
+    print(f"Simplified Lesk with window {simple_lesk_window_acc}")
 
     # # Evaluation of Simplified Lesk (with IDF values and no fixed window) using different splits of the corpus.
-    # simple_lesk.train(instances=train, use_idf=True)
-    # simple_lesk_idf_acc = simple_lesk.evaluate(test)
-    # print(f"Simplified Lesk with IDF {simple_lesk_idf_acc}")
+    simple_lesk.train(instances=train, use_idf=True)
+    simple_lesk_idf_acc = simple_lesk.evaluate(test)
+    print(f"Simplified Lesk with IDF {simple_lesk_idf_acc}\n")
 
     # Cross-validation
     
+    print("Cross Validation")
     randome_baseline_acc = cross_validation(model=RandomSense(), data=instances, is_randome=True)
     print(f"Random Baseline average accuracy {randome_baseline_acc}")
     
@@ -221,6 +222,9 @@ if __name__ == '__main__':
     print(f"Simplified Lesk with window average accuracy {simple_lesk_window_acc}")
 
     simple_lesk_idf_acc = cross_validation(model=SimplifiedLesk(), data=instances, has_param=True, params={'use_idf': True})
-    print(f"Simplified Lesk with IDF average accuracy {simple_lesk_idf_acc}")
+    print(f"Simplified Lesk with IDF average accuracy {simple_lesk_idf_acc}\n")
     
     # Naive Bayes classifier
+    print("Naive Bayes")
+    naive_acc = naive_bayes_classifier(instances)
+    print(naive_acc)
