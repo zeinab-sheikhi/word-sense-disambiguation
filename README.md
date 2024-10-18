@@ -23,14 +23,6 @@ The classifiers evaluate their performance based on a dataset of word senses and
 ### Evaluation Metrics
 - The accuracy of the models is computed using the proportion of correctly predicted senses over the total instances. 
 
-## Results
-Upon running the classifiers on the TWA dataset, the following average accuracies were achieved through cross-validation:
-
-- Random Baseline: [insert accuracy]
-- Most Frequent Sense: [insert accuracy]
-- Simplified Lesk: [insert accuracy]
-- Simplified Lesk with Window Size: [insert accuracy]
-- Simplified Lesk with IDF: [insert accuracy]
 
 ## Installation
 Ensure you have the required libraries:
@@ -43,6 +35,3 @@ Run the main script with the path to the TWA dataset:
 ```bash
 python wsd.py path/to/twa_dataset.xml
 ```
-
-## License
-This project is licensed under the MIT License.
